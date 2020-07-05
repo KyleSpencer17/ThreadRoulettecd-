@@ -36,7 +36,6 @@ public class RouletteServices {
 					playerList.add(player);
 				}
 				br.close();
-				System.out.println(myObj.length());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -139,59 +138,69 @@ public class RouletteServices {
 		return this.scan;
 	}
 
-	public void getPlayerHistoryFromfile(RouletteResult result)  {
+	public List<PlayerHistory> getPlayerHistoryFromfile() {
 		String[] myArr;
 		PlayerHistory historyObj;
 		List<PlayerHistory> myList = new ArrayList<PlayerHistory>();
-		List<PlayerHistory> resultList = new ArrayList<PlayerHistory>();
 		try {
-			
+
 			Scanner scanner = new Scanner(myObj);
 			while (scanner.hasNext()) {
-				System.out.println("Reading");
 				String data = scanner.nextLine();
 				myArr = data.split(",");
-				if(myArr.length < 2) {
+				if (myArr.length < 2) {
 					String arr[] = new String[3];
 					arr[1] = "0";
 					arr[2] = "0";
 					historyObj = new PlayerHistory(myArr[0], Double.parseDouble(arr[2]), Double.parseDouble(arr[1]));
 					myList.add(historyObj);
-				}
-				else {
-					historyObj = new PlayerHistory(myArr[0], Double.parseDouble(myArr[2]), Double.parseDouble(myArr[1]));
+				} else {
+					historyObj = new PlayerHistory(myArr[0], Double.parseDouble(myArr[2]),
+							Double.parseDouble(myArr[1]));
 					myList.add(historyObj);
 				}
-				
-				
+
 			}
 			scanner.close();
-			
+			return myList;
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+		return myList;
+	}
+
+	public List<PlayerHistory> getFinalResultsAndHistory(RouletteResult result) {
+		List<PlayerHistory> myList = null;
+		try {
+			myList = getPlayerHistoryFromfile();
 			FileWriter fileWriter = new FileWriter(myObj);
 			PrintWriter printWriter = new PrintWriter(fileWriter);
-				for (Map.Entry<Player, PlayerResult> entry : result.getResults().entrySet()) {
-					resultList.add(new PlayerHistory(entry.getKey().getName(), entry.getKey().getBet(), entry.getValue().getWinnings()));
-				}
-				
-				for(int i = 0; i < myList.size();i++) {
-					myList.get(i).setBet(myList.get(i).getBet() + resultList.get(i).getBet());
-					myList.get(i).setWinnings(myList.get(i).getWinnings() + resultList.get(i).getWinnings());
-				}
-			
-			for (PlayerHistory item : myList) {
-				if(item.getBet() != 0) {
-					printWriter.println(item.getName() + "," + item.getWinnings() + "," + item.getBet());
-				}
-				else {
-					printWriter.println(item.getName());
-				}
-				
+			List<PlayerHistory> resultList = new ArrayList<PlayerHistory>();
+			for (Map.Entry<Player, PlayerResult> entry : result.getResults().entrySet()) {
+				resultList.add(new PlayerHistory(entry.getKey().getName(), entry.getKey().getBet(),
+						entry.getValue().getWinnings()));
 			}
 
+			for (int i = 0; i < myList.size(); i++) {
+				myList.get(i).setBet(myList.get(i).getBet() + resultList.get(i).getBet());
+				myList.get(i).setWinnings(myList.get(i).getWinnings() + resultList.get(i).getWinnings());
+			}
+
+			for (PlayerHistory item : myList) {
+				if (item.getBet() != 0) {
+					printWriter.println(item.getName() + "," + item.getWinnings() + "," + item.getBet());
+				} else {
+					printWriter.println(item.getName());
+				}
+			}
 			printWriter.close();
 			fileWriter.close();
+			return myList;
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return myList;
 	}
 }
